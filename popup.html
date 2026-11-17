@@ -1,0 +1,178 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="popup.css">
+  <title>PhishGuard</title>
+</head>
+<body>
+  <main class="app">
+
+    <header class="topbar">
+      <div class="brand-icon">PG</div>
+      <div class="brand-text">
+        <h1>PhishGuard</h1>
+        <p>Local page scan</p>
+      </div>
+      <span class="local">● LOCAL</span>
+    </header>
+
+    <section id="emptyState" class="empty">
+      <strong id="scanStatus">Checking this tab…</strong>
+      <p>Analyzing the URL, local ML model and webpage structure.</p>
+    </section>
+
+    <button id="scan" class="scan">
+      <span>Rescan this tab</span>
+      <span class="scan-icon">↻</span>
+    </button>
+
+    <section id="result" class="result hidden" aria-live="polite">
+
+      <!-- Overall verdict -->
+      <section class="score-card">
+        <div class="verdict">
+          <span id="riskLevel" class="risk-level">SCANNING</span>
+          <small id="host" class="host"></small>
+          <p id="summary" class="summary">
+            Scan results will appear here.
+          </p>
+        </div>
+        <div class="score-box">
+          <small>Risk score</small>
+          <div id="score" class="score">—<small>/100</small></div>
+        </div>
+        <div class="meter">
+          <i id="meterFill"></i>
+        </div>
+        <div class="meter-labels">
+          <span>Lower risk</span>
+          <span>Higher risk</span>
+        </div>
+      </section>
+
+      <!-- Individual detection layers -->
+      <section class="panel">
+        <h2><span class="heading-icon">▱</span> Detection layers</h2>
+
+        <div class="layers">
+          <div class="layer-card">
+            <span class="layer-icon url-icon">↗</span>
+            <small>URL rules</small>
+            <strong id="heuristicScore">—</strong>
+            <div class="mini-meter"><i id="urlFill"></i></div>
+          </div>
+
+          <div class="layer-card">
+            <span class="layer-icon ml-icon">◎</span>
+            <small>Local ML</small>
+            <strong id="mlScore">—</strong>
+            <div class="mini-meter"><i id="mlFill"></i></div>
+          </div>
+
+          <div class="layer-card">
+            <span class="layer-icon dom-icon">&lt;/&gt;</span>
+            <small>DOM analysis</small>
+            <strong id="domScore">Pending</strong>
+            <div class="mini-meter"><i id="domFill"></i></div>
+          </div>
+        </div>
+
+        <p id="modelStatus" class="model-status">
+          Checking local model…
+        </p>
+        <p class="confidence-row">
+          Extreme-confidence URL:
+          <strong id="extremeConfidence">No</strong>
+        </p>
+      </section>
+
+      <!-- DOM and security checks -->
+      <section class="panel">
+        <h2><span class="heading-icon">⌕</span> What we checked</h2>
+        <p class="section-description">
+          Page elements and security indicators observed during this scan.
+        </p>
+
+        <div id="checksList" class="checks-list">
+          <div class="check-row">
+            <span>Password fields</span>
+            <strong id="passwordCheck">Not reported</strong>
+          </div>
+          <div class="check-row">
+            <span>External form actions</span>
+            <strong id="formCheck">Not reported</strong>
+          </div>
+          <div class="check-row">
+            <span>Hidden iframes</span>
+            <strong id="iframeCheck">Not reported</strong>
+          </div>
+          <div class="check-row">
+            <span>HTTPS connection</span>
+            <strong id="httpsCheck">Not reported</strong>
+          </div>
+        </div>
+
+        <p class="section-description">
+          Checks depend on the information returned by the active scan.
+          “Not reported” does not mean safe.
+        </p>
+      </section>
+
+      <!-- Explain the result -->
+      <section class="explanation">
+        <div class="explanation-title">
+          <span class="bulb">✦</span>
+          <h2>Why this result?</h2>
+        </div>
+        <p id="explanationText">
+          Scan evidence and explanations will appear here.
+        </p>
+      </section>
+
+      <!-- Evidence -->
+      <section class="panel">
+        <h2>Detection evidence</h2>
+        <ul id="findings" class="findings">
+          <li>No findings reported yet.</li>
+        </ul>
+      </section>
+
+      <!-- Score calculation details -->
+      <details class="fusion-details">
+        <summary>Technical details &amp; fusion rules</summary>
+        <p class="section-description">
+          These rules describe how the detector combines its signals.
+        </p>
+        <ul id="appliedRules" class="findings"></ul>
+      </details>
+
+      <!-- Actions -->
+      <button id="viewReport" class="view-report" type="button">
+        <span>▤</span>
+        View full report
+        <span>→</span>
+      </button>
+
+      <button id="copyReport" class="secondary" type="button">
+        Copy report
+      </button>
+
+    </section>
+
+    <footer>
+      <span>▣</span>
+      All analysis stays on this device.
+      <small>Decision support, not a guarantee.</small>
+    </footer>
+
+  </main>
+
+  <script src="rules.js"></script>
+  <script src="ml/inference.js"></script>
+  <script src="hybrid.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
