@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "note": "Generated from content.js extractFeatures(); column order = CSV order. tests/dom_features.test.js fails if this drifts.",
+  "features": [
+    {
+      "name": "dom_n_forms",
+      "description": "Forms on the page (incl. same-origin iframes)"
+    },
+    {
+      "name": "dom_n_password_fields",
+      "description": "input[type=password] count"
+    },
+    {
+      "name": "dom_n_password_visible",
+      "description": "Password fields a person can see"
+    },
+    {
+      "name": "dom_n_password_hidden",
+      "description": "Password fields hidden by display/visibility/zero-size layout (includes closed modals and inactive login steps)"
+    },
+    {
+      "name": "dom_n_password_stealth_hidden",
+      "description": "Password fields made invisible by opacity 0, off-screen position or 1px size while still fillable"
+    },
+    {
+      "name": "dom_n_hidden_credential_inputs",
+      "description": "Hidden inputs whose name/id matches pass|credential|secret (original coarse rule)"
+    },
+    {
+      "name": "dom_n_forms_cross_origin",
+      "description": "Forms posting to a different origin (scheme+host+port)"
+    },
+    {
+      "name": "dom_n_forms_cross_site",
+      "description": "Forms posting to a different registrable domain (www->auth subdomain is NOT counted)"
+    },
+    {
+      "name": "dom_n_forms_http",
+      "description": "Forms posting over http://"
+    },
+    {
+      "name": "dom_n_password_forms_cross_origin",
+      "description": "Password forms posting to a different origin"
+    },
+    {
+      "name": "dom_n_password_forms_cross_site",
+      "description": "Password forms posting to a different registrable domain"
+    },
+    {
+      "name": "dom_n_password_forms_http",
+      "description": "Password forms posting over http://"
+    },
+    {
+      "name": "dom_n_forms_null_action",
+      "description": "Forms with empty, # or javascript: action (common in SPAs and in kits)"
+    },
+    {
+      "name": "dom_n_iframes",
+      "description": "iframe count"
+    },
+    {
+      "name": "dom_n_hidden_iframes",
+      "description": "Hidden iframes"
+    },
+    {
+      "name": "dom_n_hidden_iframes_with_form",
+      "description": "Hidden same-origin iframes containing a form"
+    },
+    {
+      "name": "dom_password_without_form",
+      "description": "1 if a password field exists but no <form>"
+    },
+    {
+      "name": "dom_n_resources",
+      "description": "img/script/stylesheet/icon/media resources with an http(s) URL"
+    },
+    {
+      "name": "dom_n_ext_resources",
+      "description": "Of those, loaded from a different registrable domain"
+    },
+    {
+      "name": "dom_ext_resource_ratio",
+      "description": "dom_n_ext_resources / dom_n_resources"
+    },
+    {
+      "name": "dom_n_ext_sites",
+      "description": "Distinct external registrable domains used by resources"
+    },
+    {
+      "name": "dom_n_ext_scripts",
+      "description": "External <script src> from a different registrable domain"
+    },
+    {
+      "name": "dom_favicon_present",
+      "description": "1 if a <link rel=icon> exists"
+    },
+    {
+      "name": "dom_favicon_foreign",
+      "description": "1 if any favicon is hosted on a different registrable domain"
+    },
+    {
+      "name": "dom_n_links",
+      "description": "Anchors with href (mailto/tel excluded)"
+    },
+    {
+      "name": "dom_null_link_ratio",
+      "description": "Share of links that are empty, # or javascript:"
+    },
+    {
+      "name": "dom_ext_link_ratio",
+      "description": "Share of links pointing to a different registrable domain"
+    },
+    {
+      "name": "dom_meta_refresh",
+      "description": "1 if <meta http-equiv=refresh> exists"
+    },
+    {
+      "name": "dom_meta_refresh_cross_site",
+      "description": "1 if the meta refresh target is a different registrable domain"
+    },
+    {
+      "name": "dom_n_inline_scripts",
+      "description": "Inline <script> blocks (capped at 200)"
+    },
+    {
+      "name": "dom_inline_script_bytes",
+      "description": "Total inline script characters scanned (capped 100k each)"
+    },
+    {
+      "name": "dom_script_eval",
+      "description": "1 if inline script contains eval("
+    },
+    {
+      "name": "dom_script_atob",
+      "description": "1 if inline script contains atob("
+    },
+    {
+      "name": "dom_script_obfuscation",
+      "description": "1 if inline script uses unescape(, String.fromCharCode or long \\x escapes"
+    },
+    {
+      "name": "dom_script_document_write",
+      "description": "1 if inline script calls document.write("
+    },
+    {
+      "name": "dom_brand_in_title",
+      "description": "1 if title / og:site_name / application-name names a known brand"
+    },
+    {
+      "name": "dom_brand_domain_mismatch",
+      "description": "1 if a named brand has no relation to the page's registrable domain"
+    }
+  ]
+}
