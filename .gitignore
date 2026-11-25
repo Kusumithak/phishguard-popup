@@ -1,5 +1,6 @@
 # Dependencies & Python virtual environments
 vendor/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -9,6 +10,10 @@ __pycache__/
 # Large dataset archives & raw CSVs (> 50MB)
 data/*.zip
 data/**/*.csv
+data/raw/
+
+# Generated training outputs are private except the selected handoff files.
+out/
 
 # IDE & OS temporary files
 .vscode/

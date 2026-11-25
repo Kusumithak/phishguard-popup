@@ -1,6 +1,9 @@
 "use strict";
 
-importScripts("rules.js", "ml/inference.js", "hybrid.js");
+globalThis.PhishGuardMLConfig = globalThis.PhishGuardMLConfig || {
+  USE_CANDIDATE_URL_MODEL: false
+};
+importScripts("rules.js", "ml/url_model.js", "ml/inference.js", "hybrid.js");
 
 const currentScans = new Map();
 const storageWrites = new Map();

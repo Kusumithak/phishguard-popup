@@ -24,6 +24,11 @@
     "host_keyword_count", "has_punycode"
   ];
 
+  // Set to true in background.js only after the candidate passes evaluation.
+  root.PhishGuardMLConfig = root.PhishGuardMLConfig || {
+    USE_CANDIDATE_URL_MODEL: false
+  };
+
   function entropy(value) {
     if (!value) return 0;
     const counts = new Map();
@@ -167,8 +172,32 @@ try {
     return model;
   }
 
+  async function loadCandidateModel() {
+    if (root.PhishGuardCandidateModel) return root.PhishGuardCandidateModel;
+    const response = await fetch(chrome.runtime.getURL("ml/model_candidate.json"));
+    if (!response.ok) throw new Error("Candidate model file could not be loaded.");
+    const model = await response.json();
+    if (!root.PhishUrlModel || !Array.isArray(model.features) || !model.lexicon) {
+      throw new Error("Candidate URL model or feature extractor is unavailable.");
+    }
+    root.PhishGuardCandidateModel = model;
+    return model;
+  }
+
   async function predict(rawUrl) {
     try {
+      if (root.PhishGuardMLConfig.USE_CANDIDATE_URL_MODEL === true) {
+        const candidate = await loadCandidateModel();
+        const probability = root.PhishUrlModel.score(candidate, String(rawUrl).trim());
+        return {
+          available: true,
+          probability,
+          score: Math.round(probability * 100),
+          label: probability >= 0.5 ? "Likely phishing" : "Likely legitimate",
+          featureCount: candidate.features.length,
+          model: "candidate"
+        };
+      }
       const model = await loadModel();
       const modelInput = removeTrackingParameters(String(rawUrl).trim());
       const values = extractFeatures(modelInput);
@@ -219,7 +248,12 @@ try {
   extractFeatures,
   removeTrackingParameters,
   loadModel,
-  preloadModel: loadModel,
+  loadCandidateModel,
+  preloadModel: async function () {
+    return root.PhishGuardMLConfig.USE_CANDIDATE_URL_MODEL === true
+      ? loadCandidateModel()
+      : loadModel();
+  },
   predict
 };
 })(globalThis);

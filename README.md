@@ -32,7 +32,7 @@ flowchart LR
     E --> F{Sensitive structure present?}
     F -->|Yes| H[DOM structure scan]
     F -->|No| I[DOM score = 0]
-    H --> J[Calibrated weighted fusion]
+    H --> J[Hand-weighted fusion]
     I --> J
     J --> K{SAFE / SUSPICIOUS / PHISHING}
     K -->|SUSPICIOUS| L[Subtle banner]
@@ -46,27 +46,16 @@ flowchart LR
 - **Model**: `StandardScaler` + `LogisticRegression` serialized directly to JSON (`ml/model.json`).
 - **Dataset reference**: PhiUSIIL Phishing URL Dataset. The CSV and the training notebook/script are not present in this checkout, so the shipped model cannot currently be reproduced or independently validated from this repository.
 - The current weights include a targeted calibration adjustment: URL path separators and generic terms such as “account” no longer dominate predictions. This is not a retraining run; proper retraining and validation require the missing dataset and training code.
-- **Client-Side Feature Vector (20 features)**:
-  1. `url_length`
-  2. `hostname_length`
-  3. `path_length`
-  4. `query_length`
-  5. `subdomain_count`
-  6. `digit_count`
-  7. `digit_ratio`
-  8. `special_char_count`
-  9. `hyphen_count`
-  10. `dot_count`
-  11. `slash_count`
-  12. `has_https`
-  13. `has_ip_host`
-  14. `has_punycode`
-  15. `has_at_symbol`
-  16. `has_encoded_char`
-  17. `hostname_entropy`
-  18. `suspicious_keyword_count`
-  19. `suspicious_tld`
-  20. `query_parameter_count`
+- **Shipped model features (9)**:
+  1. `host_length`: hostname character count after removing a leading `www.` and trailing dot.
+  2. `deep_subdomain_count`: subdomain levels beyond the first, using the inference module's small multi-part-suffix list.
+  3. `digit_ratio`: digits divided by normalized hostname length.
+  4. `hyphen_count`: hyphens in the normalized hostname.
+  5. `has_userinfo`: whether the URL contains a non-empty username or password.
+  6. `has_https`: whether the scheme is HTTPS. This legacy feature can encode a collection shortcut and is excluded from the new URL-only candidate feature sets.
+  7. `has_ip`: raw IP hostname indicator.
+  8. `host_keyword_count`: exact hostname tokens found in the shipped suspicious-keyword set.
+  9. `has_punycode`: whether the hostname contains `xn--`.
 
 ### 2. Heuristic Rules Engine (`rules.js`)
 Evaluates URL patterns and brand mimicry signals:
@@ -162,6 +151,44 @@ Run the test suite using Node.js (no network connection or external npm dependen
 ```powershell
 node tests/rules.test.js
 ```
+
+## Reproducing the URL model
+
+The URL model pipeline uses URL strings and labels only. It never opens a URL. Install its Python dependencies and run the commands from the repository root:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python training\url_pipeline.py collect
+.\.venv\Scripts\python training\url_pipeline.py build
+.\.venv\Scripts\python training\url_pipeline.py train
+.\.venv\Scripts\python -m unittest tests\test_features.py
+node tests\parity_test.js
+node tests\parity_test.js out/model.json
+node scripts\benchmark_model.js out/model.json out/url_test_pred.csv
+```
+
+To attach probabilities to another CSV with a `url` column, use `python scripts/score_urls.py input.csv scored.csv`. The scorer prefers matching OOF rows, then reserved test rows, then the selected exported model.
+
+Collection needs network access. It writes dated phishing-feed snapshots under `data/raw/`, plus the Tranco list. `build` writes `data/urls.csv`; `train` writes cross-validation predictions and candidate models under `out/`. The pipeline includes OpenPhish, Phishing.Database, and the optional PhishTank CSV feed. PhishTank's official download documentation says the unkeyed feed is limited to a few downloads per day, so the daily job should not run more often. OpenPhish's community-feed terms allow non-commercial use only. The feature baseline follows the shipped host-feature definitions except `has_https`: the URL scheme is deliberately excluded by the URL-model feature rules. The old shipped model's reported feature count is still nine. Candidate inference loads `ml/url_model.js` before `ml/inference.js`; the `USE_CANDIDATE_URL_MODEL` flag in `background.js` stays `false` until evaluation approves promotion.
+
+## Daily collection
+
+The daily runner collects phishing feeds only. Keep a Tranco list from an initial full `collect` run for `build`.
+
+- **Windows Task Scheduler:** set the action's Program/script to the full path of `scripts\run_daily.bat`. Set “Start in” to the repository root. Set the trigger to once per day.
+- **Cron:** from the repository root, install `scripts/run_daily.sh` once per day, for example `0 6 * * * /path/to/phishguard-popup/scripts/run_daily.sh`.
+
+Each daily run writes a dated snapshot; a repeat run on the same date replaces that date's file. Do not commit `data/raw/` or generated URL CSVs.
+
+## Limitations
+
+- Tranco provides domains, not observed page paths, so benign paths are synthetic unless a separately licensed real-path source is added.
+- Phishing timestamps represent first-seen collection dates, not verified creation times. One or a few collection days do not support a reliable time split.
+- URL-only features cannot inspect page content or DOM behavior.
+- Hashed character n-grams can collide in their fixed-size feature buckets.
+- Recall at very low false-positive rates is noisy when the test set has few benign examples; report the minimum resolvable FPR as `1 / n_test_benign`.
+- The shipped model includes `has_https`, which can encode a source-collection shortcut. The new URL feature sets omit the scheme by design; the strict baseline therefore contains the other eight shipped host features.
 
 ---
 
