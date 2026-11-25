@@ -1,0 +1,28 @@
+{
+  "baseUrl": "https://fixtures.example.com/",
+  "note": "Inert, fictional pages. 'kit_*' imitate phishing structure; 'benign_*' imitate ordinary sites. Nothing here contacts a real host: the crawler self-test serves them from memory and the network is blocked.",
+  "fixtures": [
+    { "file": "kit_cross_site_post.html", "label": 1,
+      "flags": ["password_form_cross_origin", "password_form_http"],
+      "features": { "dom_n_password_forms_cross_site": 1, "dom_favicon_foreign": 1, "dom_brand_domain_mismatch": 1, "dom_n_ext_resources": 2 } },
+    { "file": "kit_stealth_password.html", "label": 1,
+      "flags": ["hidden_password_field"],
+      "features": { "dom_n_password_stealth_hidden": 1 } },
+    { "file": "kit_obfuscated_redirect.html", "label": 1,
+      "flags": [],
+      "features": { "dom_script_eval": 1, "dom_script_atob": 1, "dom_script_obfuscation": 1, "dom_meta_refresh_cross_site": 1, "dom_brand_domain_mismatch": 1, "dom_null_link_ratio": 1 },
+      "knownLimitation": "No form, so the hand-set rules score 0. Only the new Role 3 features see this kit: the case for learned weights." },
+    { "file": "kit_external_http_form.html", "label": 1,
+      "flags": ["external_form_http"], "features": { "dom_n_forms_http": 1 } },
+    { "file": "benign_login.html", "label": 0,
+      "flags": [], "features": { "dom_n_password_forms_cross_site": 0, "dom_brand_domain_mismatch": 0, "dom_favicon_foreign": 0 } },
+    { "file": "benign_modal_closed.html", "label": 0,
+      "flags": [], "features": { "dom_n_password_hidden": 1, "dom_n_password_stealth_hidden": 0 } },
+    { "file": "benign_passkey_spa.html", "label": 0,
+      "flags": [], "features": { "dom_n_forms_null_action": 1, "dom_n_hidden_credential_inputs": 2 } },
+    { "file": "benign_sibling_subdomain.html", "label": 0,
+      "flags": ["password_form_cross_origin"],
+      "features": { "dom_n_password_forms_cross_origin": 1, "dom_n_password_forms_cross_site": 0 },
+      "knownLimitation": "KNOWN FALSE POSITIVE of the hand-set rule: posting a password to a sibling subdomain (www -> auth) is normal SSO. dom_n_password_forms_cross_site is 0, so the learned model can separate it. Fix candidate: use the cross-site feature instead of cross-origin once the FP report shows how often this occurs." }
+  ]
+}

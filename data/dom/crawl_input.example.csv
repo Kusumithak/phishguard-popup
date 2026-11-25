@@ -1,0 +1,4 @@
+url,label,source,date
+https://example-phish.invalid/secure/login.php,1,openphish,2026-11-24
+https://example-phish2.invalid/account/verify,1,phishing_database,2026-11-24
+https://github.com/login,0,benign_seed:dev,

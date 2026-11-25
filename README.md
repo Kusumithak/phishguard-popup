@@ -173,3 +173,9 @@ PhishGuard processes browsing data locally:
 - `storage`: Keep the current tab's scan result in session storage for the popup report; results are removed when the tab closes.
 - `clipboardWrite`: Used exclusively when the user clicks **Copy report**.
 - **No Network Requests**: The extension makes no external HTTP requests; all computation is strictly local. It does not read or send form field values.
+
+---
+
+## DOM dataset and feature extraction (Role 3)
+
+See [`docs/ROLE3_DOM.md`](docs/ROLE3_DOM.md) for the crawler, the 37-feature DOM schema, the labeled-CSV format and the false-positive report workflow.

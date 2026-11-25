@@ -16,3 +16,11 @@ data/**/*.csv
 .DS_Store
 Thumbs.db
 *.log
+
+# Node.js dependencies
+node_modules/
+
+# Role 3 DOM dataset files
+!data/dom/dom_labeled.csv
+!data/dom/benign_login_seed.csv
+!data/dom/crawl_input.example.csv
