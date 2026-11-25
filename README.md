@@ -44,7 +44,7 @@ flowchart LR
 
 ### 1. Machine Learning Layer (`ml/inference.js`)
 - **Model**: `StandardScaler` + `LogisticRegression` serialized directly to JSON (`ml/model.json`).
-- **Dataset reference**: PhiUSIIL Phishing URL Dataset. The CSV and the training notebook/script are not present in this checkout, so the shipped model cannot currently be reproduced or independently validated from this repository.
+- **Dataset reference**: PhiUSIIL Phishing URL Dataset for the original shipped model. Its original CSV is not included, so that historical model cannot be retrained from this checkout. The separate URL candidate and evaluation outputs under `out/` were trained in Google Colab and copied into this repo.
 - The current weights include a targeted calibration adjustment: URL path separators and generic terms such as “account” no longer dominate predictions. This is not a retraining run; proper retraining and validation require the missing dataset and training code.
 - **Shipped model features (9)**:
   1. `host_length`: hostname character count after removing a leading `www.` and trailing dot.
@@ -154,21 +154,26 @@ node tests/rules.test.js
 
 ## Reproducing the URL model
 
-The URL model pipeline uses URL strings and labels only. It never opens a URL. Install its Python dependencies and run the commands from the repository root:
+The URL pipeline uses URL strings and labels only. It never opens a phishing URL. Training was run in Google Colab because Application Control on the local Windows machine blocks pandas and scikit-learn. To reproduce collection, build, and training from the repository root in Colab, run:
 
-```powershell
-py -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python training\url_pipeline.py collect
-.\.venv\Scripts\python training\url_pipeline.py build
-.\.venv\Scripts\python training\url_pipeline.py train
-.\.venv\Scripts\python -m unittest tests\test_features.py
-node tests\parity_test.js
-node tests\parity_test.js out/model.json
-node scripts\benchmark_model.js out/model.json out/url_test_pred.csv
+```python
+!pip install numpy pandas scikit-learn
+!python training/url_pipeline.py collect
+!python training/url_pipeline.py build
+!python training/url_pipeline.py train
+!python scripts/write_results.py
 ```
 
-To attach probabilities to another CSV with a `url` column, use `python scripts/score_urls.py input.csv scored.csv`. The scorer prefers matching OOF rows, then reserved test rows, then the selected exported model.
+Local verification uses only the Python standard library and Node. From the repository root, run:
+
+```powershell
+python -m unittest tests\test_features.py
+node tests\parity_test.js
+node scripts\benchmark_model.js ml\model_candidate.json out\url_oof_train.csv
+python scripts\score_urls.py input.csv scored.csv
+```
+
+`score_urls.py` emits `url,ml_prob,prob_source`, preferring an exact OOF URL match, then a reserved test URL match, then `out/model.json`. The candidate feature flag defaults to `false`; the shipped `ml/model.json` remains the original model.
 
 Collection needs network access. It writes dated phishing-feed snapshots under `data/raw/`, plus the Tranco list. `build` writes `data/urls.csv`; `train` writes cross-validation predictions and candidate models under `out/`. The pipeline includes OpenPhish, Phishing.Database, and the optional PhishTank CSV feed. PhishTank's official download documentation says the unkeyed feed is limited to a few downloads per day, so the daily job should not run more often. OpenPhish's community-feed terms allow non-commercial use only. The feature baseline follows the shipped host-feature definitions except `has_https`: the URL scheme is deliberately excluded by the URL-model feature rules. The old shipped model's reported feature count is still nine. Candidate inference loads `ml/url_model.js` before `ml/inference.js`; the `USE_CANDIDATE_URL_MODEL` flag in `background.js` stays `false` until evaluation approves promotion.
 
@@ -183,11 +188,11 @@ Each daily run writes a dated snapshot; a repeat run on the same date replaces t
 
 ## Limitations
 
-- Tranco provides domains, not observed page paths, so benign paths are synthetic unless a separately licensed real-path source is added.
-- Phishing timestamps represent first-seen collection dates, not verified creation times. One or a few collection days do not support a reliable time split.
+- Tranco provides domains, not observed page paths, so benign paths are synthetic. The host-only versus full-feature gap may partly reflect those synthetic paths.
+- Phishing dates are first-seen collection dates, not verified creation times. This dataset has one collection day and uses a domain-grouped split, so it does not measure temporal generalization.
 - URL-only features cannot inspect page content or DOM behavior.
 - Hashed character n-grams can collide in their fixed-size feature buckets.
-- Recall at very low false-positive rates is noisy when the test set has few benign examples; report the minimum resolvable FPR as `1 / n_test_benign`.
+- The test set has 36 phishing and 267 benign URLs. Its smallest resolvable FPR is `1/267`, about 0.4%; the 0.1% FPR column therefore reflects zero false positives. Recall at very low FPR is noisy on this small test set.
 - The shipped model includes `has_https`, which can encode a source-collection shortcut. The new URL feature sets omit the scheme by design; the strict baseline therefore contains the other eight shipped host features.
 
 ---

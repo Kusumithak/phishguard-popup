@@ -30,4 +30,4 @@ const durations = urls.map((url) => {
 }).sort((a, b) => a - b);
 const mean = durations.reduce((sum, ms) => sum + ms, 0) / durations.length;
 const p95 = durations[Math.ceil(durations.length * 0.95) - 1];
-console.log(`Scored ${urls.length} test URL strings: mean ${mean.toFixed(6)} ms, p95 ${p95.toFixed(6)} ms.`);
+console.log(`Scored ${urls.length} URL strings: mean ${mean.toFixed(6)} ms, p95 ${p95.toFixed(6)} ms.`);

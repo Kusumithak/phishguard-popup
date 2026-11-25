@@ -1,55 +1,39 @@
 # URL Model Results
 
-## Run status
+## Evaluation setup
 
-Training and evaluation did not run because source collection could not resolve external hosts and the required Python packages could not be installed. This file contains no model metrics.
+Split: **domain-grouped random; NOT a time split**. The dataset has 1 collection day.
+Test set: 36 phishing and 267 benign URLs (303 rows).
+Smallest resolvable FPR: `1/267 = 0.00374532` (0.37%, about 0.4%).
+At the 0.1% FPR target, the test set can only report zero false positives: one false positive is already about 0.4% FPR.
 
-The requested dataset path is `C:\Users\praka\Desktop\ckd\phishguard-popup\data\urls.csv`. It was not created (0 rows). No phishing snapshots were written (0 collection days); downloaded phishing rows were 0 from OpenPhish, 0 from Phishing.Database, and 0 from PhishTank. Tranco benign rows were 0. The benign:phishing ratio is undefined because there are no phishing rows.
+The candidate is the full-feature GB model. It was selected by OOF PR-AUC only; the test set was not used for model selection.
+OOF PR-AUC: LR `0.928428`, GB `0.972474`.
 
-Commands and observed failures:
+## Test-set metrics
 
-- `py -m venv .venv` failed with `No installed Python found!`; Python 3.12 was then used directly to create `.venv`.
-- `.\.venv\Scripts\python -m pip install -r requirements.txt` failed because DNS resolution for PyPI failed (`getaddrinfo failed`), ending with `No matching distribution found for numpy`.
-- `.\.venv\Scripts\python training\url_pipeline.py collect` reported `[Errno 11001] getaddrinfo failed` for OpenPhish, Phishing.Database, PhishTank, and Tranco.
-- `.\.venv\Scripts\python training\url_pipeline.py build` exited because `data/raw\tranco_top.csv` is missing.
-- `.\.venv\Scripts\python training\url_pipeline.py train` exited with `ModuleNotFoundError: No module named 'numpy'`.
+| Feature set | Model | ROC-AUC | PR-AUC | Recall @ 0.1% FPR | Recall @ 1% FPR | Recall @ 5% FPR | Precision @ 0.5% prevalence, 0.1% FPR | Precision @ 0.5% prevalence, 1% FPR | Precision @ 0.5% prevalence, 5% FPR |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| baseline | LR | 0.960206 | 0.908031 | 0.583333 | 0.833333 | 0.888889 | 1.000000 | 0.358582 | 0.084032 |
+| baseline | GB | 0.964784 | 0.919213 | 0.722222 | 0.861111 | 0.888889 | 1.000000 | 0.366158 | 0.097816 |
+| host | LR | 0.950114 | 0.904039 | 0.861111 | 0.861111 | 0.861111 | 1.000000 | 1.000000 | 0.161468 |
+| host | GB | 0.947201 | 0.915410 | 0.861111 | 0.861111 | 0.888889 | 1.000000 | 1.000000 | 0.084032 |
+| full | LR | 0.969101 | 0.919887 | 0.750000 | 0.833333 | 0.888889 | 1.000000 | 0.358582 | 0.117009 |
+| full | GB | 0.978985 | 0.975659 | 0.972222 | 0.972222 | 0.972222 | 1.000000 | 1.000000 | 1.000000 |
 
-The Phishing.Database source URL in the script now matches its current README link: `https://phish.co.za/latest/phishing-links-ACTIVE.txt`. Its endpoint returned HTTP 503 when checked through the web tool; the local collection run could not resolve DNS. The project's README lists `phishing-links-ACTIVE.txt` as its active URL feed. OpenPhish's community README documents the feed URL used by the script and its 12-hour update cadence. PhishTank's official documentation lists an unkeyed downloadable CSV but limits unkeyed downloads to a few per day, so the pipeline includes the feed for the once-daily run. See the [Phishing.Database README](https://github.com/Phishing-Database/Phishing.Database/blob/master/README.md), [OpenPhish public feed README](https://github.com/openphish/public_feed/blob/main/README.md), and [PhishTank developer information](https://phishtank.org/developer_info.php).
+Baseline contains the eight non-scheme features shared with the shipped nine-feature model. `has_https` is excluded by the hard rule against scheme features.
 
-## Shipped model reference
+The old shipped model is not included: its `has_https` input violates that same feature rule, so scoring it would not be a compliant comparison.
 
-`ml/model.json` has nine inputs and `data/README.md` identifies PhiUSIIL as its training dataset. The input names and definitions in `ml/inference.js` are:
+## Limitations
 
-| Feature | Definition |
-|---|---|
-| `host_length` | Hostname length after lowercasing, removing a trailing dot, and removing leading `www.` |
-| `deep_subdomain_count` | Subdomain levels beyond the first, using the inference module's short second-level suffix list |
-| `digit_ratio` | Hostname digits divided by hostname length |
-| `hyphen_count` | Number of hyphens in the hostname |
-| `has_userinfo` | 1 when URL username or password is non-empty |
-| `has_https` | 1 when scheme is HTTPS; excluded from the new feature sets by the task's hard rule |
-| `has_ip` | 1 for IPv4 or colon-containing IP hostname |
-| `host_keyword_count` | Count of exact suspicious keyword tokens in the hostname |
-| `has_punycode` | 1 when hostname contains `xn--` |
-
-The strict baseline therefore contains the eight non-scheme features. The old shipped-model comparison cannot be computed without a test set and would use its prohibited `has_https` feature.
-
-## Metrics
-
-No split was created. This is not a time split or a domain-grouped split. `n_test_benign` and the minimum resolvable FPR are unavailable because there is no test set. No LR/GB metrics, coefficient ranking, or primary model selection were produced.
-
-| Feature set | LR | GB |
-|---|---|---|
-| baseline | Not run | Not run |
-| host | Not run | Not run |
-| full | Not run | Not run |
-
-Top LR coefficients and shortcut-artifact checks: unavailable because no model was trained. Candidate selection by OOF PR-AUC: not run. Synthetic fixtures are used only for feature/scoring smoke tests and are not evaluation data.
+- Benign Tranco URLs use synthetic paths. The host-only versus full-feature gap may partly reflect this path construction.
+- Phishing dates are first-seen collection dates, not confirmed domain creation dates.
+- The dataset contains one collection day, so this evaluation cannot measure temporal generalization.
+- URL-only features cannot inspect page content or DOM behavior.
+- Hashed character n-gram buckets can collide.
+- The test set is small (36 phishing and 267 benign URLs); recall at very low FPR is noisy.
 
 ## Handoff notes
 
-The intended join key is `url`. `url_oof_train.csv` is for fusion training; `url_test_pred.csv` is reserved for the single final evaluation. Neither file exists until training succeeds. The DOM teammate's phishing URL input would be `data/urls.csv`; the DOM set is expected to be smaller than the URL set.
-
-## Data limitations
-
-Tranco supplies domains only, so benign paths produced by `build` are synthetic. Phishing dates are first-seen collection dates. A single or small number of collection days cannot support a time split. URL-only features cannot inspect page content. Hashed n-gram buckets can collide. Recall at very low FPR is noisy when the test set is small.
+The join key is `url`. `url_oof_train.csv` carries OOF probabilities for fusion training. `url_test_pred.csv` is reserved for the single final evaluation and must not be used for fitting or model selection.

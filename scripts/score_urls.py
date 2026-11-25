@@ -2,6 +2,7 @@
 """Attach OOF/test/model URL probabilities to an input CSV without fetching URLs."""
 import argparse
 import csv
+from contextlib import nullcontext
 import json
 from pathlib import Path
 import sys
@@ -27,8 +28,8 @@ def read_probabilities(path):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("input_csv", type=Path)
-    p.add_argument("output_csv", type=Path)
+    p.add_argument("input_csv", help="CSV path, or - to read stdin")
+    p.add_argument("output_csv", help="CSV path, or - to write stdout")
     p.add_argument("--model", type=Path, default=ROOT / "out" / "model.json")
     p.add_argument("--oof", type=Path, default=ROOT / "out" / "url_oof_train.csv")
     p.add_argument("--test", type=Path, default=ROOT / "out" / "url_test_pred.csv")
@@ -37,13 +38,16 @@ def main():
     oof = read_probabilities(args.oof)
     test = read_probabilities(args.test)
     model = None
-    with args.input_csv.open(newline="", encoding="utf-8") as source:
+    input_context = open(args.input_csv, newline="", encoding="utf-8") if args.input_csv != "-" else nullcontext(sys.stdin)
+    with input_context as source:
         reader = csv.DictReader(source)
         if not reader.fieldnames or "url" not in reader.fieldnames:
             p.error("input CSV must have a `url` column")
         rows = list(reader)
-    args.output_csv.parent.mkdir(parents=True, exist_ok=True)
-    with args.output_csv.open("w", newline="", encoding="utf-8") as output:
+    if args.output_csv != "-":
+        Path(args.output_csv).parent.mkdir(parents=True, exist_ok=True)
+    output_context = open(args.output_csv, "w", newline="", encoding="utf-8") if args.output_csv != "-" else nullcontext(sys.stdout)
+    with output_context as output:
         writer = csv.DictWriter(output, fieldnames=["url", "ml_prob", "prob_source"])
         writer.writeheader()
         counts = {"oof": 0, "test": 0, "model": 0}
@@ -60,7 +64,8 @@ def main():
                 probability, source = score_with_model(model, url), "model"
             writer.writerow({"url": url, "ml_prob": probability, "prob_source": source})
             counts[source] += 1
-    print(f"Wrote {len(rows)} rows to {args.output_csv}; sources={counts}")
+    print(f"Wrote {len(rows)} rows to {args.output_csv}; sources={counts}",
+          file=sys.stderr if args.output_csv == "-" else sys.stdout)
 
 
 if __name__ == "__main__":

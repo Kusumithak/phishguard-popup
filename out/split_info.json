@@ -1,0 +1,11 @@
+{
+  "method": "domain-grouped random",
+  "warning": "only 1 distinct phishing days over 0 days: NOT a time split; say so in the report",
+  "n_train": 1287,
+  "n_test": 303,
+  "train_phish": 229,
+  "test_phish": 36,
+  "test_benign": 267,
+  "phishing_days": 1,
+  "date_span_days": 0
+}
