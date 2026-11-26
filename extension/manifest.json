@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "PhishGuard Hybrid Detector",
+  "version": "1.0.0",
+  "description": "Real-time hybrid phishing protection using a Tranco Top-50k Bloom filter, heuristic rules, URL ML, DOM signals, and explainable risk attribution.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PhishGuard Hybrid Detector"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "blocked.js",
+        "data/tranco-top50k-bloom.json",
+        "src/ml/model.json"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
