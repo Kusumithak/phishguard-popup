@@ -17,7 +17,114 @@
 
 "use strict";
 
+// Shared structural fingerprint. This module is deliberately part of content.js so both
+// the extension and tools/crawl_dom.js execute the identical implementation.
+(function exposeKitFingerprint(root) {
+  const MASK_64 = (1n << 64n) - 1n;
+  const FNV_OFFSET_64 = 14695981039346656037n;
+  const FNV_PRIME_64 = 1099511628211n;
+
+  function hashToken(token) {
+    let hash = FNV_OFFSET_64;
+    for (let i = 0; i < token.length; i += 1) {
+      hash ^= BigInt(token.charCodeAt(i));
+      hash = (hash * FNV_PRIME_64) & MASK_64;
+    }
+    return hash;
+  }
+
+  function countBucket(count) {
+    if (count === 0) return "0";
+    if (count === 1) return "1";
+    if (count <= 3) return "2-3";
+    if (count <= 7) return "4-7";
+    if (count <= 15) return "8-15";
+    return "16+";
+  }
+
+  function kitFingerprint(doc) {
+    if (!doc || typeof doc.querySelectorAll !== "function") {
+      throw new TypeError("kitFingerprint requires a document-like object.");
+    }
+
+    const bits = Array(64).fill(0);
+    function add(token) {
+      const hash = hashToken(token);
+      for (let bit = 0; bit < 64; bit += 1) {
+        bits[bit] += ((hash >> BigInt(bit)) & 1n) === 1n ? 1 : -1;
+      }
+    }
+
+    const all = doc.querySelectorAll("*");
+    const limit = Math.min(all.length, 400);
+    const tags = [];
+    for (let i = 0; i < limit; i += 1) {
+      tags.push(String(all[i].tagName || "").toLowerCase());
+    }
+
+    for (let i = 0; i + 2 < tags.length; i += 1) {
+      add(`tag3:${tags[i]}>${tags[i + 1]}>${tags[i + 2]}`);
+    }
+
+    const forms = Array.from(doc.forms || []);
+    add(`form-count:${forms.length}`);
+    let hasPassword = false;
+    for (let formIndex = 0; formIndex < forms.length; formIndex += 1) {
+      const form = forms[formIndex];
+      const method = String(form.method || "get").toLowerCase().slice(0, 16);
+      add(`form:${formIndex}:method:${method}`);
+      const inputs = form.querySelectorAll("input");
+      const inputLimit = Math.min(inputs.length, 400);
+      add(`form:${formIndex}:input-count:${inputLimit}`);
+      for (let inputIndex = 0; inputIndex < inputLimit; inputIndex += 1) {
+        const type = String(inputs[inputIndex].type || "text").toLowerCase().slice(0, 32);
+        add(`form:${formIndex}:input:${inputIndex}:${type}`);
+        if (type === "password") hasPassword = true;
+      }
+    }
+    if (!hasPassword) {
+      hasPassword = doc.querySelectorAll('input[type="password"]').length > 0;
+    }
+    add(`has-password:${hasPassword ? 1 : 0}`);
+
+    const counts = { a: 0, img: 0, script: 0, iframe: 0 };
+    const counted = doc.querySelectorAll("a, img, script, iframe");
+    for (let i = 0; i < counted.length; i += 1) {
+      const tag = String(counted[i].tagName || "").toLowerCase();
+      if (Object.hasOwn(counts, tag)) counts[tag] += 1;
+    }
+    for (const [tag, count] of Object.entries(counts)) add(`count:${tag}:${countBucket(count)}`);
+
+    let output = 0n;
+    for (let bit = 0; bit < 64; bit += 1) {
+      if (bits[bit] > 0) output |= 1n << BigInt(bit);
+    }
+    return output.toString(16).padStart(16, "0");
+  }
+
+  function hamming(left, right) {
+    if (!/^[0-9a-f]{16}$/i.test(String(left)) || !/^[0-9a-f]{16}$/i.test(String(right))) {
+      throw new TypeError("Hamming distance expects two 16-character hexadecimal fingerprints.");
+    }
+    let value = BigInt(`0x${left}`) ^ BigInt(`0x${right}`);
+    let distance = 0;
+    while (value) {
+      value &= value - 1n;
+      distance += 1;
+    }
+    return distance;
+  }
+
+  root.PhishGuardKitFingerprint = { kitFingerprint, hamming };
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = root.PhishGuardKitFingerprint;
+  }
+})(globalThis);
+
 (() => {
+  // Node can require content.js for its pure fingerprint helpers without installing a DOM.
+  if (!globalThis.document || !globalThis.chrome?.runtime) return;
+
   if (globalThis.__phishGuardDomScannerInstalled) {
     globalThis.__phishGuardScheduleProbe?.(true);
     return;

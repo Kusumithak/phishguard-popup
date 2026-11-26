@@ -167,31 +167,61 @@ try {
     return model;
   }
 
+  // Shared pure scoring path for the extension and offline evaluation tools.
+  // Keeping feature extraction and scaling here prevents benchmark drift.
+  function scoreWithModel(rawUrl, model) {
+    if (
+      !model ||
+      model.feature_count !== FEATURE_NAMES.length ||
+      !Array.isArray(model.feature_names) ||
+      model.feature_names.length !== FEATURE_NAMES.length ||
+      !FEATURE_NAMES.every((name, i) => model.feature_names[i] === name) ||
+      !Array.isArray(model.scaler_mean) ||
+      !Array.isArray(model.scaler_scale) ||
+      !Array.isArray(model.coefficients?.[0]) ||
+      !Array.isArray(model.intercept) ||
+      model.scaler_mean.length !== FEATURE_NAMES.length ||
+      model.scaler_scale.length !== FEATURE_NAMES.length ||
+      model.coefficients[0].length !== FEATURE_NAMES.length ||
+      model.intercept.length < 1 ||
+      !model.scaler_mean.every(Number.isFinite) ||
+      !model.scaler_scale.every((value) => Number.isFinite(value) && value !== 0) ||
+      !model.coefficients[0].every(Number.isFinite) ||
+      !Number.isFinite(model.intercept[0])
+    ) {
+      throw new Error("Model schema does not match the shipped URL feature extractor.");
+    }
+
+    const modelInput = removeTrackingParameters(String(rawUrl).trim());
+    const values = extractFeatures(modelInput);
+    let logit = model.intercept[0];
+    const coefficients = model.coefficients[0];
+
+    values.forEach((value, index) => {
+      const scale = model.scaler_scale[index];
+      if (!Number.isFinite(scale) || scale === 0) {
+        throw new Error("Invalid scaler value at feature " + index);
+      }
+      logit += ((value - model.scaler_mean[index]) / scale) * coefficients[index];
+    });
+
+    return {
+      probability: sigmoid(logit),
+      features: values,
+      featureNames: FEATURE_NAMES,
+      modelInput
+    };
+  }
+
   async function predict(rawUrl) {
     try {
       const model = await loadModel();
-      const modelInput = removeTrackingParameters(String(rawUrl).trim());
-      const values = extractFeatures(modelInput);
+      const prediction = scoreWithModel(rawUrl, model);
+      const probability = prediction.probability;
 
-      let logit = model.intercept[0];
-      const coefficients = model.coefficients[0];
-
-      values.forEach((value, index) => {
-        const scale = model.scaler_scale[index];
-        if (!Number.isFinite(scale) || scale === 0) {
-          throw new Error("Invalid scaler value at feature " + index);
-        }
-
-        logit +=
-          ((value - model.scaler_mean[index]) / scale) *
-          coefficients[index];
-      });
-
-      const probability = sigmoid(logit);
-
-      console.log("URL used for ML:", modelInput);
-      console.log("Feature names:", FEATURE_NAMES);
-      console.log("Extracted features:", values);
+      console.log("URL used for ML:", prediction.modelInput);
+      console.log("Feature names:", prediction.featureNames);
+      console.log("Extracted features:", prediction.features);
       console.log("ML probability:", probability);
 
       return {
@@ -201,7 +231,7 @@ try {
         label: probability >= 0.5
           ? "Likely phishing"
           : "Likely legitimate",
-        featureCount: values.length
+        featureCount: prediction.features.length
       };
     } catch (error) {
       console.error("PhishGuard ML error:", error);
@@ -218,6 +248,7 @@ try {
   root.PhishGuardML = {
   extractFeatures,
   removeTrackingParameters,
+  scoreWithModel,
   loadModel,
   preloadModel: loadModel,
   predict
