@@ -1,0 +1,66 @@
+[
+  {
+    "id": "demo_safe",
+    "label": "Safe (Tranco Top-50k)",
+    "expectedVerdict": "SAFE",
+    "url": "https://github.com/trending/javascript",
+    "description": "Trusted Tranco domain matched by the 50k Bloom filter with zero suspicious lexical or DOM flags.",
+    "domFeatures": {
+      "dom_external_resource_ratio": 0.12,
+      "dom_foreign_favicon": 0,
+      "dom_void_links_ratio": 0.02,
+      "dom_meta_refresh": 0,
+      "dom_eval_atob_hits": 0,
+      "dom_brand_domain_mismatch": 0,
+      "dom_password_external_form": 0
+    }
+  },
+  {
+    "id": "demo_benign_login",
+    "label": "Benign Login Page (Google Sign-In)",
+    "expectedVerdict": "SAFE",
+    "url": "https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com",
+    "description": "Legitimate login portal with a password field. Tranco Bloom filter protects it from false-positive flagging on 'signin' keywords.",
+    "domFeatures": {
+      "dom_external_resource_ratio": 0.08,
+      "dom_foreign_favicon": 0,
+      "dom_void_links_ratio": 0.04,
+      "dom_meta_refresh": 0,
+      "dom_eval_atob_hits": 0,
+      "dom_brand_domain_mismatch": 0,
+      "dom_password_external_form": 0
+    }
+  },
+  {
+    "id": "demo_suspicious",
+    "label": "Suspicious (Unverified Portal)",
+    "expectedVerdict": "SUSPICIOUS",
+    "url": "https://portal-verify-9821.billing-desk.xyz/account/session-check?id=44192",
+    "description": "Unlisted domain with suspicious .xyz TLD, high digit/hyphen ratio, and moderate external assets triggering a SUSPICIOUS warning without full block.",
+    "domFeatures": {
+      "dom_external_resource_ratio": 0.45,
+      "dom_foreign_favicon": 0,
+      "dom_void_links_ratio": 0.15,
+      "dom_meta_refresh": 0,
+      "dom_eval_atob_hits": 0,
+      "dom_brand_domain_mismatch": 0,
+      "dom_password_external_form": 0
+    }
+  },
+  {
+    "id": "demo_phishing",
+    "label": "Phishing (Blocked Warning Page)",
+    "expectedVerdict": "PHISHING",
+    "url": "https://secure-paypal-login.verify-account-8841.top/signin/kyc-update.php?token=99182736",
+    "description": "Brand impersonation on .top TLD with long high-entropy host, foreign favicon, eval/atob obfuscation, and external password form submission.",
+    "domFeatures": {
+      "dom_external_resource_ratio": 0.85,
+      "dom_foreign_favicon": 1,
+      "dom_void_links_ratio": 0.62,
+      "dom_meta_refresh": 1,
+      "dom_eval_atob_hits": 1,
+      "dom_brand_domain_mismatch": 1,
+      "dom_password_external_form": 1
+    }
+  }
+]
