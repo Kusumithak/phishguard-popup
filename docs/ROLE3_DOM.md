@@ -96,7 +96,7 @@ With 0 phishing rows it says so in the report instead of inventing numbers. Give
 
 ## CSV columns (shared format)
 
-`url, label, domain, date, source, fetch_ok, http_status, final_url, redirected_cross_site, scan_ms, snapshot_file, error`, then `flag_*` (7 rule flags, 0/1), `dom_hand_score`, then 37 `dom_*` features. `label` 1 = phishing. `domain` is eTLD+1 via `tldts` (matches Python `tldextract`). `scan_ms` feeds Role 1's latency figure.
+`url, label, domain, date, source, fetch_ok, http_status, final_url, redirected_cross_site, scan_ms, snapshot_file, error, kit_fp`, then `flag_*` (7 rule flags, 0/1), `dom_hand_score`, then 37 `dom_*` features. `kit_fp` is the 64-bit structural SimHash from the shared `content.js` implementation; older CSVs without the column load it as empty. `label` 1 = phishing. `domain` is eTLD+1 via `tldts` (matches Python `tldextract`). `scan_ms` feeds Role 1's latency figure.
 
 ## Known limits (state these honestly)
 

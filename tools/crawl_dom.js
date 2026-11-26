@@ -78,7 +78,8 @@ async function crawlOne(context, row) {
         scan = await page.evaluate(() => {
           const t0 = performance.now();
           const result = window.__phishGuardScanDom();
-          return { ...result, scanMs: performance.now() - t0 };
+          const kitFp = window.PhishGuardKitFingerprint.kitFingerprint(document);
+          return { ...result, kitFp, scanMs: performance.now() - t0 };
         });
         break;
       } catch (error) {
@@ -107,6 +108,15 @@ async function crawlOne(context, row) {
 }
 
 async function main() {
+  const sourceInput = path.resolve(args["retry-failed"] || INPUT);
+  const normalizePath = (value) => {
+    const resolved = path.resolve(value);
+    return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  };
+  if (normalizePath(OUT) === normalizePath(sourceInput)) {
+    throw new Error("Output path must differ from the input CSV; choose a separate --out path.");
+  }
+
   let chromium;
   try { ({ chromium } = require("playwright")); }
   catch { console.error("Playwright is not installed. Run:  npm i -D playwright tldts && npx playwright install chromium"); process.exit(1); }
@@ -126,7 +136,10 @@ async function main() {
   await context.addInitScript(CHROME_STUB);
   await context.addInitScript({ path: path.join(ROOT, "content.js") });
   // Read-only crawl: any request that could carry data out is dropped.
-  await context.route("**/*", (route) => (["GET", "HEAD", "OPTIONS"].includes(route.request().method()) ? route.fallback() : route.abort()));
+  await context.route("**/*", (route) => {
+    if (REEXTRACT) return route.abort();
+    return ["GET", "HEAD", "OPTIONS"].includes(route.request().method()) ? route.fallback() : route.abort();
+  });
 
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   const lines = [buildHeader(FEATURE_NAMES)];

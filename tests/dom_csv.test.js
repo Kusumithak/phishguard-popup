@@ -10,7 +10,7 @@ const names = schema.features.map((f) => f.name);
 
 // parse / escape round trip, including commas, quotes and CRLF
 const tricky = 'a,"b ""quoted"", with comma",c\r\n1,2,3\r\n';
-assert.deepEqual(csv.parseCsv("x,y,z\r\n" + tricky.split("\r\n")[0] + "\r\n"), [{ x: "a", y: 'b "quoted", with comma', z: "c" }]);
+assert.deepEqual(csv.parseCsv("x,y,z\r\n" + tricky.split("\r\n")[0] + "\r\n"), [{ x: "a", y: 'b "quoted", with comma', z: "c", kit_fp: "" }]);
 assert.equal(csv.csvEscape('he said "hi", ok'), '"he said ""hi"", ok"');
 
 // labels: 1 = phishing, 0 = benign
@@ -30,7 +30,7 @@ assert.equal(new Set(seed.map((r) => r.url)).size, seed.length, "duplicate seed 
 
 // header and row always have the same number of columns, failed fetches included
 const header = csv.parseCsv(csv.buildHeader(names) + "\n" + csv.buildRow({ url: "https://a.test/", label: 0 }, null, names));
-assert.equal(Object.keys(header[0]).length, csv.META_COLUMNS.length + csv.FLAG_NAMES.length + 1 + names.length);
+assert.equal(Object.keys(header[0]).length, csv.META_COLUMNS.length + 1 + csv.FLAG_NAMES.length + 1 + names.length);
 
 // FP report on a small synthetic dataset
 const feature = (over) => Object.fromEntries(names.map((n) => [n, over[n] ?? 0]));
