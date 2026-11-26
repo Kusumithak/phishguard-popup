@@ -40,7 +40,12 @@ function parseCsv(text) {
   if (row.some((cell) => cell !== "")) rows.push(row);
   if (!rows.length) return [];
   const header = rows[0].map((h) => h.trim());
-  return rows.slice(1).map((cells) => Object.fromEntries(header.map((h, i) => [h, (cells[i] ?? "").trim()])));
+  return rows.slice(1).map((cells) => {
+    const parsed = Object.fromEntries(header.map((h, i) => [h, (cells[i] ?? "").trim()]));
+    // Datasets created before kit_fp was introduced remain readable with an empty value.
+    if (!Object.hasOwn(parsed, "kit_fp")) parsed.kit_fp = "";
+    return parsed;
+  });
 }
 
 // 1 = phishing, 0 = benign (the shared-format convention). Accepts a few spellings.
@@ -70,13 +75,14 @@ function domainOf(url) {
 const snapshotName = (url) => `${crypto.createHash("sha1").update(url).digest("hex")}.html`;
 const flagColumns = () => FLAG_NAMES.map((name) => `flag_${name}`);
 
-// One CSV row: meta columns, flag_* (0/1), dom_hand_score, then the dom_* features in schema order.
+// One CSV row: meta columns, kit_fp, flag_* (0/1), dom_hand_score, then DOM features.
 function buildRow(meta, scan, featureNames) {
   const metaValues = META_COLUMNS.map((c) => meta[c] ?? "");
-  if (!scan) return toCsvLine([...metaValues, ...FLAG_NAMES.map(() => ""), "", ...featureNames.map(() => "")]);
+  const kitFp = typeof scan?.kitFp === "string" ? scan.kitFp : "";
+  if (!scan) return toCsvLine([...metaValues, "", ...FLAG_NAMES.map(() => ""), "", ...featureNames.map(() => "")]);
   const flags = FLAG_NAMES.map((name) => (scan.findings.includes(name) ? 1 : 0));
-  return toCsvLine([...metaValues, ...flags, scan.domScore, ...featureNames.map((n) => scan.features[n])]);
+  return toCsvLine([...metaValues, kitFp, ...flags, scan.domScore, ...featureNames.map((n) => scan.features[n])]);
 }
-const buildHeader = (featureNames) => toCsvLine([...META_COLUMNS, ...flagColumns(), "dom_hand_score", ...featureNames]);
+const buildHeader = (featureNames) => toCsvLine([...META_COLUMNS, "kit_fp", ...flagColumns(), "dom_hand_score", ...featureNames]);
 
 module.exports = { FLAG_NAMES, STRONG_FLAGS, META_COLUMNS, csvEscape, toCsvLine, parseCsv, normalizeLabel, domainOf, snapshotName, flagColumns, buildRow, buildHeader };
