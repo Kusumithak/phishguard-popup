@@ -43,30 +43,10 @@ flowchart LR
 ```
 
 ### 1. Machine Learning Layer (`ml/inference.js`)
-- **Model**: `StandardScaler` + `LogisticRegression` serialized directly to JSON (`ml/model.json`).
-- **Dataset reference**: PhiUSIIL Phishing URL Dataset. The CSV and the training notebook/script are not present in this checkout, so the shipped model cannot currently be reproduced or independently validated from this repository.
-- The current weights include a targeted calibration adjustment: URL path separators and generic terms such as “account” no longer dominate predictions. This is not a retraining run; proper retraining and validation require the missing dataset and training code.
-- **Client-Side Feature Vector (20 features)**:
-  1. `url_length`
-  2. `hostname_length`
-  3. `path_length`
-  4. `query_length`
-  5. `subdomain_count`
-  6. `digit_count`
-  7. `digit_ratio`
-  8. `special_char_count`
-  9. `hyphen_count`
-  10. `dot_count`
-  11. `slash_count`
-  12. `has_https`
-  13. `has_ip_host`
-  14. `has_punycode`
-  15. `has_at_symbol`
-  16. `has_encoded_char`
-  17. `hostname_entropy`
-  18. `suspicious_keyword_count`
-  19. `suspicious_tld`
-  20. `query_parameter_count`
+- **Model**: `StandardScaler` + `LogisticRegression` serialized as JSON (`ml/model.json`).
+- **Shipped feature vector (9 hostname features)**: `host_length`, `deep_subdomain_count`, `digit_ratio`, `hyphen_count`, `has_userinfo`, `has_https`, `has_ip`, `host_keyword_count`, and `has_punycode`.
+- **Reproducibility status**: `data/README.md` cites PhiUSIIL, but the original training CSV and training script are not present. The checked-in model can be scored and evaluated, but its training cannot be reproduced from this repository.
+- An offline evaluator now scores this exact shipped model against a labeled CSV using the same inference function as the extension. It reports ranking metrics and threshold operating points and clearly marks the current one-day dataset as exploratory, not as an untouched test result.
 
 ### 2. Heuristic Rules Engine (`rules.js`)
 Evaluates URL patterns and brand mimicry signals:
@@ -115,7 +95,9 @@ phishguard-heuristics-extension/
 │   ├── inference.js      # Pure JS feature extractor & logistic inference engine
 │   └── model.json        # Scaler weights, means, scales & coefficients
 ├── data/
-│   └── phiusiil/         # PhiUSIIL Phishing URL Dataset (CSV)
+│   └── dom/              # Labeled URL/DOM crawl data and schema
+├── tools/
+│   └── evaluate_url_model.js # Offline model evaluation; never opens URLs
 └── tests/
     └── rules.test.js     # Heuristic test suite (runs with Node.js)
 ```
@@ -155,13 +137,22 @@ Do **not** visit malicious websites directly. Navigate to safe sites to exercise
 
 ---
 
-## Running Automated Tests
+## Evaluation and Automated Tests
 
-Run the test suite using Node.js (no network connection or external npm dependencies needed):
+Install the locked development dependencies and run the complete test suite:
 
 ```powershell
-node tests/rules.test.js
+npm ci
+npm test
 ```
+
+Generate an offline report for the shipped URL model:
+
+```powershell
+npm run evaluate:url-model
+```
+
+The evaluator reads URL strings from `data/dom/dom_labeled.csv`; it never opens or fetches them. It compares the shipped logistic model with URL heuristics. The included one-day, small dataset is exploratory and must not be presented as a final accuracy or production false-positive estimate. Use a multi-day collection and a domain-disjoint untouched test set for that claim. See [`docs/MODEL_EVALUATION.md`](docs/MODEL_EVALUATION.md).
 
 ---
 
