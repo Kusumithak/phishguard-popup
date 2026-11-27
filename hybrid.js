@@ -98,7 +98,8 @@
   extremeConfidence,
   hardExtreme,
   softExtreme,
-  findings = []
+  findings = [],
+  urlFindings = []
 }) {
   const normalizedML = clampScore(mlScore);
   const normalizedHeuristics = clampScore(urlHeurScore);
@@ -165,9 +166,9 @@
   }
 
   // Additional risk floor for multiple independent URL indicators.
-  const urlFindingCount = normalizeFindings(
-    findings
-  ).length;
+ const urlFindingCount = normalizeFindings(
+  urlFindings
+).length;
 
   if (normalizedHeuristics >= 20 && urlFindingCount >= 2) {
     fused = Math.max(fused, 35);
@@ -252,7 +253,8 @@ async function analyseUrl(rawUrl) {
       hardExtreme: urlResult?.hardExtreme,
       softExtreme: urlResult?.softExtreme,
       extremeConfidence: urlResult?.extremeConfidence,
-      findings: domFindings
+      findings: domFindings,
+urlFindings: urlFindings
     });
 
     // Never lower an earlier decision during the same navigation.
