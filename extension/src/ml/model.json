@@ -1,0 +1,15 @@
+{
+  "model_type": "logistic_regression_url_v2",
+  "bias": -2.15,
+  "features": {
+    "url_length_norm": 1.15,
+    "path_length_norm": 0.68,
+    "query_length_norm": 0.54,
+    "host_entropy_norm": 1.42,
+    "digit_ratio": 1.85,
+    "subdomain_count_norm": 1.10,
+    "hyphen_count_norm": 0.92,
+    "brand_word_hits": 1.38,
+    "special_char_ratio": 1.25
+  }
+}
