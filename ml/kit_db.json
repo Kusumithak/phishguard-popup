@@ -1,0 +1,410 @@
+[
+  {
+    "fp": "00944fb177bcea9b",
+    "label": 0
+  },
+  {
+    "fp": "00950db937e4b849",
+    "label": 0
+  },
+  {
+    "fp": "018581ab03a93845",
+    "label": 0
+  },
+  {
+    "fp": "0814cab979e4ba58",
+    "label": 0
+  },
+  {
+    "fp": "085e6ca8c0a5fb5a",
+    "label": 0
+  },
+  {
+    "fp": "08840cbd75ecba4b",
+    "label": 0
+  },
+  {
+    "fp": "08858ab93fa5b855",
+    "label": 0
+  },
+  {
+    "fp": "099c16852ca5fa4b",
+    "label": 0
+  },
+  {
+    "fp": "0b8407a925b5f859",
+    "label": 0
+  },
+  {
+    "fp": "0b85aa3d2904bacb",
+    "label": 0
+  },
+  {
+    "fp": "0c1445bd75dcea4b",
+    "label": 0
+  },
+  {
+    "fp": "0c144cf555fcaa0a",
+    "label": 0
+  },
+  {
+    "fp": "0c144dbd75fcaa0a",
+    "label": 0
+  },
+  {
+    "fp": "0c14cdfc7ea5fe5a",
+    "label": 0
+  },
+  {
+    "fp": "0c35851e160ef959",
+    "label": 0
+  },
+  {
+    "fp": "0c954dbd75acaa0b",
+    "label": 0
+  },
+  {
+    "fp": "0d94d9bb2d25bad9",
+    "label": 0
+  },
+  {
+    "fp": "0e1589b56e8d88c8",
+    "label": 0
+  },
+  {
+    "fp": "20f5e633661edadb",
+    "label": 0
+  },
+  {
+    "fp": "39148dbd759498c9",
+    "label": 0
+  },
+  {
+    "fp": "40140731741ed8d9",
+    "label": 0
+  },
+  {
+    "fp": "4014c7bb529ef8dd",
+    "label": 0
+  },
+  {
+    "fp": "408506a907857855",
+    "label": 0
+  },
+  {
+    "fp": "40c542a947857055",
+    "label": 0
+  },
+  {
+    "fp": "40ef06a90f853855",
+    "label": 0
+  },
+  {
+    "fp": "41d424a147e5781d",
+    "label": 0
+  },
+  {
+    "fp": "4495c7393a8cbac9",
+    "label": 0
+  },
+  {
+    "fp": "471048c844e2e1e4",
+    "label": 0
+  },
+  {
+    "fp": "4cf402190d852e51",
+    "label": 0
+  },
+  {
+    "fp": "50dc1f6a4874b0d0",
+    "label": 0
+  },
+  {
+    "fp": "514449194c4cb2c3",
+    "label": 0
+  },
+  {
+    "fp": "542500b90e05a805",
+    "label": 0
+  },
+  {
+    "fp": "548549404428aac3",
+    "label": 0
+  },
+  {
+    "fp": "57b4695a6cb82f31",
+    "label": 0
+  },
+  {
+    "fp": "609486ab2325fa7d",
+    "label": 0
+  },
+  {
+    "fp": "6494e2ab2106f231",
+    "label": 0
+  },
+  {
+    "fp": "7d7b9516d903553d",
+    "label": 0
+  },
+  {
+    "fp": "82b5eab357a4fab3",
+    "label": 0
+  },
+  {
+    "fp": "82f5eab157a4fa97",
+    "label": 0
+  },
+  {
+    "fp": "8894cabd61a4ba4b",
+    "label": 0
+  },
+  {
+    "fp": "89a5aa3529049acb",
+    "label": 0
+  },
+  {
+    "fp": "8ba4a2352904ba4b",
+    "label": 0
+  },
+  {
+    "fp": "8ba5ea752e049ac9",
+    "label": 0
+  },
+  {
+    "fp": "8bb5aa377904facb",
+    "label": 0
+  },
+  {
+    "fp": "9925cd1edc08e461",
+    "label": 0
+  },
+  {
+    "fp": "af540a327761884a",
+    "label": 0
+  },
+  {
+    "fp": "cba58ab50b85b849",
+    "label": 0
+  },
+  {
+    "fp": "dd49828e662f9b12",
+    "label": 0
+  },
+  {
+    "fp": "e7412a247c807ae6",
+    "label": 0
+  },
+  {
+    "fp": "f42547be6c18f441",
+    "label": 0
+  },
+  {
+    "fp": "00954ebb77a4aa5b",
+    "label": 1
+  },
+  {
+    "fp": "00c406a966a7b855",
+    "label": 1
+  },
+  {
+    "fp": "0884c6bd0584381d",
+    "label": 1
+  },
+  {
+    "fp": "088cc73d2284b81f",
+    "label": 1
+  },
+  {
+    "fp": "089d4e3d2da4ba4b",
+    "label": 1
+  },
+  {
+    "fp": "091c0c745ca4bf42",
+    "label": 1
+  },
+  {
+    "fp": "09858bb529849ad9",
+    "label": 1
+  },
+  {
+    "fp": "0b850a352984ba4b",
+    "label": 1
+  },
+  {
+    "fp": "0c144dbd75fcaa0a",
+    "label": 1
+  },
+  {
+    "fp": "0c14c6e940e5fe77",
+    "label": 1
+  },
+  {
+    "fp": "0c94c7bd33a4ea19",
+    "label": 1
+  },
+  {
+    "fp": "0cb5cb3d3da4bc5b",
+    "label": 1
+  },
+  {
+    "fp": "0db599772e24a859",
+    "label": 1
+  },
+  {
+    "fp": "1024469e2c48e911",
+    "label": 1
+  },
+  {
+    "fp": "17256d44244830c3",
+    "label": 1
+  },
+  {
+    "fp": "1e3e0d3c35e398f3",
+    "label": 1
+  },
+  {
+    "fp": "2b242fbb474d765a",
+    "label": 1
+  },
+  {
+    "fp": "34af5c4075f9d682",
+    "label": 1
+  },
+  {
+    "fp": "3796c1bb5a27a82d",
+    "label": 1
+  },
+  {
+    "fp": "39fc49ab7c0684ac",
+    "label": 1
+  },
+  {
+    "fp": "40c506a907853855",
+    "label": 1
+  },
+  {
+    "fp": "41c70f2b23a63807",
+    "label": 1
+  },
+  {
+    "fp": "440497ab5565f851",
+    "label": 1
+  },
+  {
+    "fp": "46c406e94f8db855",
+    "label": 1
+  },
+  {
+    "fp": "488106a90fa5b85d",
+    "label": 1
+  },
+  {
+    "fp": "488406a90185f855",
+    "label": 1
+  },
+  {
+    "fp": "4c9046ad21b5e299",
+    "label": 1
+  },
+  {
+    "fp": "4c950fbd7784b849",
+    "label": 1
+  },
+  {
+    "fp": "4ce497a9208d32d5",
+    "label": 1
+  },
+  {
+    "fp": "4d560e6b1fe5fd51",
+    "label": 1
+  },
+  {
+    "fp": "4dd40feb1fe5fc13",
+    "label": 1
+  },
+  {
+    "fp": "534549544400b0c3",
+    "label": 1
+  },
+  {
+    "fp": "53eb2f47880963c1",
+    "label": 1
+  },
+  {
+    "fp": "548549404428aac3",
+    "label": 1
+  },
+  {
+    "fp": "57e469582c280d43",
+    "label": 1
+  },
+  {
+    "fp": "678ce9e78b23ffed",
+    "label": 1
+  },
+  {
+    "fp": "6a449fff5cd6fcd1",
+    "label": 1
+  },
+  {
+    "fp": "77e660543c3a5ac1",
+    "label": 1
+  },
+  {
+    "fp": "7d7b9516d903553d",
+    "label": 1
+  },
+  {
+    "fp": "807a91236cf7ded4",
+    "label": 1
+  },
+  {
+    "fp": "82858aa107a5b855",
+    "label": 1
+  },
+  {
+    "fp": "82858aa93785ba55",
+    "label": 1
+  },
+  {
+    "fp": "88a58e352b84bacb",
+    "label": 1
+  },
+  {
+    "fp": "89b58ab52b04bac9",
+    "label": 1
+  },
+  {
+    "fp": "8b8fae0bbe6c5e53",
+    "label": 1
+  },
+  {
+    "fp": "8e00e66121841109",
+    "label": 1
+  },
+  {
+    "fp": "afde0e3175a59a83",
+    "label": 1
+  },
+  {
+    "fp": "bf5e4d367563db82",
+    "label": 1
+  },
+  {
+    "fp": "cc374b892388aa1b",
+    "label": 1
+  },
+  {
+    "fp": "db85e8952b0c92e2",
+    "label": 1
+  },
+  {
+    "fp": "db95ea952b0d92c0",
+    "label": 1
+  },
+  {
+    "fp": "dbc4ca7748e6e6f2",
+    "label": 1
+  }
+]

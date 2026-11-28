@@ -1,7 +1,7 @@
 // One command for every test:  node tests/run_all.js
 const { spawnSync } = require("node:child_process");
 const path = require("node:path");
-const files = ["rules.test.js", "dom_csv.test.js", "dom_tools.test.js", "dom_features.test.js", "fixtures.test.js", "kit_fingerprint.test.js", "kit_csv.test.js"];
+const files = ["rules.test.js", "dom_csv.test.js", "dom_tools.test.js", "dom_features.test.js", "fixtures.test.js", "kit_fingerprint.test.js", "kit_csv.test.js", "eval_kit.test.js", "kit_match.test.js"];
 let failed = 0;
 for (const file of files) {
   const run = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
