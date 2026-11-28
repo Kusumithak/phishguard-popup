@@ -67,6 +67,9 @@ Evaluates URL patterns and brand mimicry signals:
 ### 3. DOM Analysis (`content.js`)
 Every page receives a lightweight structure probe. Pages with a password field or a form are fully scanned; an extreme-confidence URL still gets an asynchronous DOM scan after its immediate warning. Checks include password-form destinations, insecure form actions, hidden password fields, and hidden frames containing forms. It does not inspect what a user typed or transmit page data.
 
+### Optional phishing-kit fingerprint match
+The experimental matcher is **off by default**. To enable it, set `ENABLE_KIT_MATCH` to `true` in `content.js`, refresh the unpacked extension, and keep `ml/kit_db.json` beside the extension files. Its selected threshold is `T = 0`; matches appear in the popup evidence list and do not change the DOM score, fusion weights, or decision thresholds. Rebuild the local signature file from the fingerprint CSV with `node tools/build_kit_db.js`; the database contains only `{ "fp", "label" }` entries, with no URLs or domains.
+
 ### 4. Fusion Scoring & Risk Bands
 With the model: `fused = 0.30 × ML + 0.30 × URL heuristics + 0.40 × DOM`. Without it: `fused = 0.50 × URL heuristics + 0.50 × DOM`. Scores are clamped to 0–100. A raw IP or punycode host, or a brand look-alike host with URL heuristic score at least 40, floors the score at 80 and locks PHISHING. DOM score at least 70, or findings `hidden_password_field`, `password_form_cross_origin`, or `password_form_http`, floor the score at 60. `hidden_iframe_with_form` contributes its score without the finding-based floor. At the URL stage, the preview is `0.30 × ML + 0.30 × URL heuristics` when the model is available and URL heuristics alone when it is unavailable; scores from 35–49 show a subtle warning while DOM analysis continues.
 

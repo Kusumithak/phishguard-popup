@@ -3,7 +3,6 @@
 
 const { spawnSync } = require("node:child_process");
 const path = require("node:path");
-
 const files = [
   "rules.test.mjs",
   "dom_csv.test.js",
@@ -13,8 +12,9 @@ const files = [
   "hybrid.test.mjs",
   "kit_fingerprint.test.js",
   "kit_csv.test.js",
+  "eval_kit.test.js",
+  "kit_match.test.js",
 ];
-
 let failed = 0;
 
 for (const file of files) {

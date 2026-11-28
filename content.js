@@ -115,7 +115,25 @@
     return distance;
   }
 
-  root.PhishGuardKitFingerprint = { kitFingerprint, hamming };
+  function kitMatchFinding(doc, entries, threshold, enabled = false) {
+    if (!enabled || !Array.isArray(entries)) return null;
+    const fp = kitFingerprint(doc);
+    let nearestPhish = 65;
+    let nearestBenign = 65;
+    for (const entry of entries) {
+      if (!entry || !/^[0-9a-f]{16}$/i.test(String(entry.fp || ""))) continue;
+      const label = Number(entry.label);
+      if (label !== 0 && label !== 1) continue;
+      const distance = hamming(fp, entry.fp);
+      if (label === 1) nearestPhish = Math.min(nearestPhish, distance);
+      else nearestBenign = Math.min(nearestBenign, distance);
+    }
+    return nearestPhish <= threshold && nearestPhish < nearestBenign
+      ? `page structure matches a known phishing kit (distance ${nearestPhish})`
+      : null;
+  }
+
+  root.PhishGuardKitFingerprint = { kitFingerprint, hamming, kitMatchFinding };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = root.PhishGuardKitFingerprint;
   }
@@ -134,6 +152,11 @@
 
   const MAX_SCORE = 100;
   const RESCAN_INTERVAL_MS = 2000;
+  // Explicit opt-in. Changing this constant is the only way to activate kit matching.
+  const ENABLE_KIT_MATCH = false;
+  const KIT_MATCH_THRESHOLD = 0;
+  let kitDatabase = [];
+  let kitDatabasePromise = null;
 
   let scanId = null;
   let probeTimer = null;
@@ -142,6 +165,27 @@
   let lastFullScanAt = 0;
   let lastFullSignature = "";
   let observer = null;
+
+  function loadKitDatabase() {
+    if (!ENABLE_KIT_MATCH) return Promise.resolve([]);
+    if (!kitDatabasePromise) {
+      kitDatabasePromise = new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ type: "PHISHGUARD_GET_KIT_DB" }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          if (!Array.isArray(response?.entries)) {
+            reject(new Error("Kit database was not available."));
+            return;
+          }
+          kitDatabase = response.entries;
+          resolve(kitDatabase);
+        });
+      });
+    }
+    return kitDatabasePromise;
+  }
 
   // Safely collect forms from the current page and accessible iframes.
   function pageForms() {
@@ -686,6 +730,9 @@
     };
 
     const uniqueFindings = [...new Set(findings)];
+    const kitFinding = ENABLE_KIT_MATCH
+      ? globalThis.PhishGuardKitFingerprint.kitMatchFinding(document, kitDatabase, KIT_MATCH_THRESHOLD, true)
+      : null;
 
     const domScore = Math.max(
       0,
@@ -703,6 +750,8 @@
     return {
       domScore,
       findings: uniqueFindings,
+      // Kept separate from scored DOM findings so this evidence cannot alter fusion.
+      kitFinding,
       // Extra field for the fusion model / dataset. background.js ignores it.
       features: extractFeatures({ forms, passwordFields, hiddenCredentials, iframes, counters }),
       stats: {
@@ -749,7 +798,7 @@
   }
 
   // Run the complete scan with a minimum interval.
-  function runFullScan() {
+  async function runFullScan() {
     const now = Date.now();
     const wait = lastFullScanAt + RESCAN_INTERVAL_MS - now;
 
@@ -762,6 +811,11 @@
       }
 
       return;
+    }
+
+    if (ENABLE_KIT_MATCH) {
+      try { await loadKitDatabase(); }
+      catch (error) { console.warn("PhishGuard kit matcher unavailable:", error.message); }
     }
 
     const result = scanDom();

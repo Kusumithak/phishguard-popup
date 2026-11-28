@@ -7,6 +7,26 @@ const storageWrites = new Map();
 const DOM_PROBE_TIMEOUT_MS = 1800;
 const PAGE_LOAD_WAIT_MS = 900;
 const modelReady = PhishGuardML.preloadModel();
+let kitDatabasePromise = null;
+
+function loadKitDatabase() {
+  if (!kitDatabasePromise) {
+    kitDatabasePromise = fetch(chrome.runtime.getURL("ml/kit_db.json"))
+      .then((response) => {
+        if (!response.ok) throw new Error("Kit database could not be loaded.");
+        return response.json();
+      })
+      .then((entries) => {
+        if (!Array.isArray(entries) || entries.some((entry) =>
+          !entry || !/^[0-9a-f]{16}$/i.test(String(entry.fp || "")) ||
+          ![0, 1].includes(Number(entry.label)) ||
+          Object.keys(entry).some((key) => !["fp", "label"].includes(key))
+        )) throw new Error("Kit database has an invalid entry.");
+        return entries.map((entry) => ({ fp: entry.fp, label: Number(entry.label) }));
+      });
+  }
+  return kitDatabasePromise;
+}
 
 function storageKey(tabId) {
   return `scan:${tabId}`;
@@ -402,6 +422,7 @@ async function finishDomScan(tabId, state, domResult) {
   }
 
   const urlFindings = current.urlResult.urlFindings.map(findingText);
+  const kitFinding = typeof domResult.kitFinding === "string" ? domResult.kitFinding : null;
   const report = createReport(current, {
     fused: fused.fused,
     decision: fused.decision,
@@ -413,7 +434,7 @@ domStats: normalizedDOM.stats,
     extremeConfidence: current.urlResult.extremeConfidence,
     hardExtreme: current.urlResult.hardExtreme,
     softExtreme: current.urlResult.softExtreme,
-    findings: [...urlFindings, ...normalizedDOM.findings],
+    findings: [...urlFindings, ...normalizedDOM.findings, ...(kitFinding ? [kitFinding] : [])],
     urlFindings,
     domFindings: normalizedDOM.findings,
     appliedRules: [...new Set([...(current.report?.appliedRules || []), ...fused.appliedRules])],
@@ -465,6 +486,16 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === "PHISHGUARD_GET_KIT_DB") {
+    void loadKitDatabase()
+      .then((entries) => sendResponse({ entries }))
+      .catch((error) => {
+        console.warn("PhishGuard kit database unavailable:", error.message);
+        sendResponse({ entries: [] });
+      });
+    return true;
+  }
+
   // Handle the lightweight DOM probe.
   if (message?.type === "PHISHGUARD_DOM_PROBE_RESULT") {
     const tabId = sender.tab?.id;
@@ -523,7 +554,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const domResult = message.dom || {
       domScore: message.domScore,
       findings: message.findings,
-      stats: message.stats
+      stats: message.stats,
+      kitFinding: message.kitFinding
     };
 
     if (
